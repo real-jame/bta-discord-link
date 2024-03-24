@@ -1,15 +1,10 @@
 package realjame.serverstatus;
 
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.channel.concrete.Category;
-import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.entity.player.EntityPlayerMP;
+import org.lwjgl.Sys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -21,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,22 +23,29 @@ import java.util.concurrent.TimeUnit;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
 import static realjame.serverstatus.Config.getDefaultYaml;
 
 public class ServerStatus implements ModInitializer {
 	public static final String MOD_ID = "serverstatus";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	private ScheduledExecutorService scheduler;
-	private long startTime = Instant.now().getEpochSecond();
+    private final long startTime = Instant.now().getEpochSecond();
 
 	@Override
 	public void onInitialize() {
 		LOGGER.info("ServerStatus started.");
+		System.out.println("Discord bot is starting up...");
 
 		Config config = loadConfig();
 		if (config == null) {
-			logError("serverstatus.yaml file not found in the server's config directory.");
+			logError("A valid serverstatus.yaml file was not found in the server's config directory.");
+			return;
 		}
 
 //		System.out.println("The Discord token is " + config.token);
@@ -57,21 +58,28 @@ public class ServerStatus implements ModInitializer {
 		}
 		Path worldDir = Paths.get(FabricLoader.getInstance().getGameDir().toString() + "/" + config.worldName);
 
-		JDA jda = JDABuilder.createDefault(config.token).setActivity(Activity.playing("JameSMP")).build();
+		JDA jda;
+		try {
+			jda = JDABuilder.createDefault(config.token).setActivity(Activity.playing(config.playingStatus != null ? config.playingStatus : "A Minecraft: Better Than Adventure server!")).build();
+		} catch (Exception e) {
+			logError("Failed to initialize Discord bot: " + e.getMessage());
+			return;
+		}
 		try {
 			jda.awaitReady();
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			logError("Discord bot failed to load: " + e.getMessage());
+			return;
 		}
 		Guild guild = jda.getGuildById(config.guildId);
 		if (guild == null) {
-			logError("Please specify a server ID (at guildId) in serverstatus.yaml.");
+			logError("Please specify a valid server ID (at guildId) in serverstatus.yaml.");
 			return;
 		}
 //		System.out.println("The guild is " + guild.getName());
 		Category category = guild.getCategoryById(config.categoryId);
 		if (category == null) {
-			logError("Please specify a category ID (at categoryId) in serverstatus.yaml.");
+			logError("Please specify a valid category ID (at categoryId) in serverstatus.yaml.");
 			return;
 		}
 //		System.out.println("The category is " + category.getName());
@@ -89,12 +97,12 @@ public class ServerStatus implements ModInitializer {
 		}
 
 		// Make channels
-		VoiceChannel uptime = (VoiceChannel) category.createVoiceChannel("🟢 Online for 0h 1m").complete();
-		VoiceChannel playerCount = (VoiceChannel) category.createVoiceChannel("👥 Players online: 1").complete();
-		VoiceChannel worldSize = (VoiceChannel) category.createVoiceChannel("💾 World size: 1 gazillion TB").complete();
+		VoiceChannel uptime = (VoiceChannel) category.createVoiceChannel("🟢 Online for 0h 0m").complete();
+		VoiceChannel playerCount = (VoiceChannel) category.createVoiceChannel("👥 Players online: 0").complete();
+		VoiceChannel worldSize = (VoiceChannel) category.createVoiceChannel("💾 World size: 1 gazillion TB (joking)").complete();
 
 		// Start listening for stats
-		scheduler = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		scheduler.scheduleAtFixedRate(() -> updateUptime(uptime), 0, 5, TimeUnit.MINUTES);
 
 		// TODO: This one is delayed to not cause issues with the Minecraft server - without it ConfigManager would return null in updatePlayerCount.
@@ -102,6 +110,9 @@ public class ServerStatus implements ModInitializer {
 		scheduler.scheduleAtFixedRate(() -> updatePlayerCount(playerCount), 5, 5 * 60, TimeUnit.SECONDS);
 
 		scheduler.scheduleAtFixedRate(() -> updateWorldSize(worldSize, worldDir), 0, 5, TimeUnit.MINUTES);
+
+		LOGGER.info("Discord bot is now active and listening!");
+		System.out.println("Discord bot is now active and listening!");
 	}
 
 	private Config loadConfig() {
@@ -114,11 +125,12 @@ public class ServerStatus implements ModInitializer {
 				String defaultConfig = getDefaultYaml();
 				Files.write(configFile, defaultConfig.getBytes());
 
-				String createdLog = "Config file template created at " + configFile.toAbsolutePath() + ", go fill it out according to the README instructions or this mod will not work! Now get ready for a random crash lol 👍";
+				String createdLog = "Config file template created at " + configFile.toAbsolutePath() + ", go fill it out according to the README instructions or this mod will not work!";
 				LOGGER.info(createdLog);
 				System.out.println(createdLog);
 			} catch (IOException e) {
-				logError("Error creating config file template: " + e);
+				logError("Error creating config file template: " + e, true);
+				return null;
 			}
 		}
 
@@ -126,14 +138,14 @@ public class ServerStatus implements ModInitializer {
 		try (InputStream inputStream = Files.newInputStream(configFile)) {
 			return yaml.loadAs(inputStream, Config.class);
 		} catch (Exception e) {
-			logError("Error loading config file: " + e);
+			logError("Error loading config file: " + e, true);
 			return null;
 		}
 	}
 
 	private static void logError(String errorMessage, boolean... noFunnyMessage) {
 		LOGGER.error(errorMessage);
-		System.out.println(errorMessage + "\nThe mod will crash now😭");//+ (noFunnyMessage == null ? "\nThe mod will crash now😭" : ""));
+		System.out.println(errorMessage + (noFunnyMessage.length == 0 ? "\nThe mod will crash now :'(" : ""));
 	}
 
 	private void updateUptime(VoiceChannel channel) {

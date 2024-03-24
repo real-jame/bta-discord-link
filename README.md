@@ -11,7 +11,7 @@ Display live statistics for your BTA server on Discord!
 This is a really basic version so that's about it. And the code could use some work, I just wanted to get it done (also, this was my first time coding Java and Minecraft mods).
 
 ## Setup
-**Get the server ready:** Download the Babric server for **1.7.7.0_02** from https://github.com/Turnip-Labs/babric-instance-repo/releases and add this mod's jar file from https://github.com/real-jame/bta-server-status-mod/releases to the mods directory. When you run the mod for the first time, it will create a config file for you to fill out in `config/serverstatus.yaml` at your server directory.
+**Get the server ready:** Download the Babric server for **1.7.7.0_02** from https://github.com/Turnip-Labs/babric-instance-repo/releases and add this mod's jar file from https://github.com/real-jame/bta-server-status-mod/releases to the mods directory. When you run the mod for the first time, it will create a config file for you to fill out in `config/serverstatus.yaml` at your server directory. The [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin/version/1.9.4+kotlin.1.8.21) mod is also a requirement.
 
 **Get the Discord bot ready:** Visit the [Discord Developer Portal](https://discord.com/developers/applications) to create a new application. Customize the name, images, etc. however you want; it's only for your personal use. Go to the bot tab and copy the **token** to the config file's `token` option, replacing the placeholder value.
 
@@ -23,11 +23,16 @@ This is a really basic version so that's about it. And the code could use some w
 
 **Get the Discord server ready:** Turn on Developer Mode in Discord's Settings > Advanced tab, so you can copy IDs for the bot to access. Right click on the server icon and copy the ID to the `guildId` option. Create a category for the bot to put its stat channels in (moving it to the top of your channels list is recommended), right click on it to copy the ID to the `categoryId` option.
 
-**One more step:** If you use a different name for your world folder, make sure to change the `worldName` option to whatever yours is named. 
+**NOTE:** The bot will **DELETE** every channel in the category every time it starts up!
+
+**Additional config options:** 
+- If you use a different name for your world folder, make sure to change the `worldName` option to whatever yours is named. 
+- If you want to change the bot's playing status, change the `playingStatus` option.
 
 That's all. Start your server again, and the bot will now update statistics every 5 minutes as long as the server is running! (Why 5? Discord rate limits.)
 
 ## TODOs
+- Get world name from `server.properties` instead of a manually set config option
 - Customize which stats are displayed
 - Customize how often stats update
 - Display stats in a text channel for realtime updating

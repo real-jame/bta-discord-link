@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "id": "serverstatus",
-  "version": "1.0.0",
+  "version": "0.1",
 
   "name": "Discord Server Status",
   "description": "This mod updates a Discord server with BTA server stats.",
   "authors": [
-    "Turnip Labs"
+    "realjame"
   ],
   "contact": {
-    "homepage": "",
-    "sources": ""
+    "homepage": "https://realja.me",
+    "sources": "https://github.com/real-jame/bta-server-status-mod"
   },
 
   "license": "LGPL-3.0",
@@ -26,8 +26,9 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.13.3"
-  },
+    "fabricloader": ">=0.13.3",
+		"fabric-language-kotlin": "*"
+	},
   "suggests": {
   }
 }
