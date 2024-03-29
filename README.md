@@ -37,7 +37,6 @@ That's all. Start your server again, and the bot will now update statistics ever
   - Hide specific stats
   - Reorder stats
   - Change stat text
-  -
 - More stats
 - Display stats in a text channel for realtime updating
 - Print server output to a text channel
