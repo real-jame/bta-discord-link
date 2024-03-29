@@ -31,17 +31,20 @@ This is a really basic version so that's about it. And the code could use some w
 
 That's all. Start your server again, and the bot will now update statistics every 5 minutes as long as the server is running! (Why 5? Discord rate limits.)
 
-## TODOs
-- Get world name from `server.properties` instead of a manually set config option
-- Customize which stats are displayed
-- Customize how often stats update
-- Display stats in a text channel for realtime updating
+## Features I want to add
+- **Discord-Minecraft chat bridge**
+- Stat customization:
+  - Hide specific stats
+  - Reorder stats
+  - Change stat text
+  -
 - More stats
-- Discord <-> Minecraft chat bridge
+- Display stats in a text channel for realtime updating
 - Print server output to a text channel
 - Run commands on the server from a text channel
+- And more!
 
-Basically, make it more of a bridge between your BTA server and your Discord server. These features would be toggleable, of course.
+Basically, make it more of a bridge between your BTA server and your Discord server. Everything will be toggleable.
 
 ----
 Developer info I kept from the template README below lol:

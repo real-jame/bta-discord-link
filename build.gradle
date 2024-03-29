@@ -1,7 +1,6 @@
 plugins {
-	id 'babric-loom' version '1.1.+'
-	id 'java'
-	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id "babric-loom" version "1.1.+"
+	id "java"
 }
 
 group = project.mod_group
@@ -18,12 +17,12 @@ repositories {
 	mavenCentral()
 	maven { url = "https://jitpack.io" }
 	maven {
-		name = 'Babric'
-		url = 'https://maven.glass-launcher.net/babric'
+		name = "Babric"
+		url = "https://maven.glass-launcher.net/babric"
 	}
 	maven {
-		name = 'Fabric'
-		url = 'https://maven.fabricmc.net/'
+		name = "Fabric"
+		url = "https://maven.fabricmc.net/"
 	}
 	ivy {
 		url = "https://github.com/Better-than-Adventure"
@@ -88,29 +87,31 @@ dependencies {
 
 //	modImplementation "ModMenu:ModMenu:2.0.0"
 
-	implementation "org.slf4j:slf4j-api:1.8.0-beta4"
-	implementation "org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0"
+	implementation "org.slf4j:slf4j-api:2.0.12"
+	implementation "org.apache.logging.log4j:log4j-slf4j18-impl:2.17.1"
 
-	implementation 'com.google.guava:guava:33.0.0-jre'
-	implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
+	implementation "com.google.guava:guava:33.0.0-jre"
+	implementation group: "com.google.code.gson", name: "gson", version: "2.10.1"
 	var log4jVersion = "2.20.0"
 	implementation("org.apache.logging.log4j:log4j-core:${log4jVersion}")
 	implementation("org.apache.logging.log4j:log4j-api:${log4jVersion}")
 	implementation("org.apache.logging.log4j:log4j-1.2-api:${log4jVersion}")
 
-	include(implementation 'org.yaml:snakeyaml:2.2')
+	include(implementation "org.yaml:snakeyaml:2.2")
 
 	//	Internal dependencies of JDA
-	include(api("com.neovisionaries:nv-websocket-client:2.14"))
-	include(implementation 'com.squareup.okio:okio:2.8.0')
-	include(api("com.squareup.okhttp3:okhttp:4.12.0"))
-	include(api("org.apache.commons:commons-collections4:4.4"))
-	include(implementation("net.sf.trove4j:trove4j:3.0.3"))
-	include(implementation("com.fasterxml.jackson.core:jackson-core:2.16.0"))
-	include(implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0"))
-
+	// 	Because Gradle Loom's include() method does not support transitive dependencies... wut?
+	include "com.neovisionaries:nv-websocket-client:2.14"
+	include 'com.squareup.okio:okio:3.7.0'
+	include "com.squareup.okhttp3:okhttp:4.12.0"
+	include "org.apache.commons:commons-collections4:4.4"
+	include "net.sf.trove4j:trove4j:3.0.3"
+	include "com.fasterxml.jackson.core:jackson-annotations:2.16.2"
+	include "com.fasterxml.jackson.core:jackson-core:2.16.2"
+	include "com.fasterxml.jackson.core:jackson-databind:2.16.2"
+//	include "org.jetbrains.kotlin:kotlin-stdlib:1.9.23"
 	include(implementation("net.dv8tion:JDA:5.0.0-beta.21") {
-		exclude module: 'opus-java'
+		exclude module: "opus-java"
 	})
 }
 
@@ -130,21 +131,6 @@ jar {
 	}
 }
 
-shadowJar {
-	from("LICENSE") {
-		rename { "${it}_${archivesBaseName}" }
-	}
-
-	// Merge META-INF/services files where needed
-	mergeServiceFiles()
-
-	// Exclude signatures, maven/ and proguard/ from META-INF
-	exclude("META-INF/*.SF")
-	exclude("META-INF/*.DSA")
-	exclude("META-INF/*.RSA")
-	exclude("META-INF/maven/**")
-	exclude("META-INF/proguard/**")
-}
 
 processResources {
 	inputs.property "version", version

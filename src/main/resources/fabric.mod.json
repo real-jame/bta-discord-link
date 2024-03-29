@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "serverstatus",
+  "id": "discordlink",
   "version": "0.1",
 
-  "name": "Discord Server Status",
-  "description": "This mod updates a Discord server with BTA server stats.",
+  "name": "BTA Discord Link",
+  "description": "This mod manages a Discord bot to provide a Discord server with stats for your BTA server (and more features todo)",
   "authors": [
     "realjame"
   ],
@@ -18,11 +18,11 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-			"realjame.serverstatus.ServerStatus"
+			"realjame.discordlink.DiscordLink"
     ]
   },
   "mixins": [
-		"serverstatus.mixins.json"
+    "discordlink.mixins.json"
   ],
 
   "depends": {

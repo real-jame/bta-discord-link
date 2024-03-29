@@ -1,4 +1,4 @@
-package realjame.serverstatus;
+package realjame.discordlink;
 
 public final class Config {
 	public String token;
