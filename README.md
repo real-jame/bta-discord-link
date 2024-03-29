@@ -11,7 +11,7 @@ Display live statistics for your BTA server on Discord!
 This is a really basic version so that's about it. And the code could use some work, I just wanted to get it done (also, this was my first time coding Java and Minecraft mods).
 
 ## Setup
-**Get the server ready:** Download the Babric server for **1.7.7.0_02** from https://github.com/Turnip-Labs/babric-instance-repo/releases and add this mod's jar file from https://github.com/real-jame/bta-server-status-mod/releases to the mods directory. When you run the mod for the first time, it will create a config file for you to fill out in `config/serverstatus.yaml` at your server directory. The [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin/version/1.9.4+kotlin.1.8.21) mod is also a requirement.
+**Get the server ready:** Download the Babric server for **1.7.7.0_02** from https://github.com/Turnip-Labs/babric-instance-repo/releases and add this mod's jar file from https://github.com/real-jame/bta-server-status-mod/releases to the mods directory. When you run the mod for the first time, it will create a config file for you to fill out in `config/serverstatus.toml` at your server directory. The [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin/version/1.9.4+kotlin.1.8.21) mod is also a requirement.
 
 **Get the Discord bot ready:** Visit the [Discord Developer Portal](https://discord.com/developers/applications) to create a new application. Customize the name, images, etc. however you want; it's only for your personal use. Go to the bot tab and copy the **token** to the config file's `token` option, replacing the placeholder value.
 

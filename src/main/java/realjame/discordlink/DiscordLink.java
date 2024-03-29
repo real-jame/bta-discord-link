@@ -1,12 +1,12 @@
 package realjame.discordlink;
 
+import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.entity.player.EntityPlayerMP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
-import static realjame.discordlink.Config.getDefaultYaml;
+import static realjame.discordlink.Config.getDefaultConfig;
 
 public class DiscordLink implements ModInitializer {
 	public static final String MOD_ID = "serverstatus";
@@ -42,14 +42,14 @@ public class DiscordLink implements ModInitializer {
 
 		Config config = loadConfig();
 		if (config == null) {
-			logError("A valid discordlink.yaml file was not found in the server's config directory.");
+			logError("A valid discordlink.toml file was not found in the server's config directory.");
 			return;
 		}
 		logInfo("Got config file.");
 
 		// TODO: Get world name from server.properties instead of a manually set config option
 		if (config.worldName == null) {
-			logError("Please specify the world name (at worldName) in discordlink.yaml.");
+			logError("Please specify the world name (at worldName) in discordlink.toml.");
 			return;
 		}
 		Path worldDir = Paths.get(FabricLoader.getInstance().getGameDir().toString() + "/" + config.worldName);
@@ -71,13 +71,13 @@ public class DiscordLink implements ModInitializer {
 		}
 		Guild guild = jda.getGuildById(config.guildId);
 		if (guild == null) {
-			logError("Please specify a valid server ID (at guildId) in discordlink.yaml.");
+			logError("Please specify a valid server ID (at guildId) in discordlink.toml.");
 			return;
 		}
 		logInfo("Got guild " + guild.getName());
 		Category category = guild.getCategoryById(config.categoryId);
 		if (category == null) {
-			logError("Please specify a valid category ID (at categoryId) in discordlink.yaml.");
+			logError("Please specify a valid category ID (at categoryId) in discordlink.toml.");
 			return;
 		}
 		logInfo("Got category " + category.getName());
@@ -112,13 +112,12 @@ public class DiscordLink implements ModInitializer {
 	}
 
 	private Config loadConfig() {
-		Path configDir = FabricLoader.getInstance().getConfigDir();
-		Path configFile = configDir.resolve("discordlink.yaml").normalize();
+		Path configFile = FabricLoader.getInstance().getConfigDir().resolve("discordlink.toml").normalize();
 
 		// Create config file if it doesn't already exist
 		if (!Files.exists(configFile)) {
 			try {
-				String defaultConfig = getDefaultYaml();
+				String defaultConfig = getDefaultConfig();
 				Files.write(configFile, defaultConfig.getBytes());
 
 				logInfo("Config file template created at " + configFile.toAbsolutePath() + ", go fill it out according to the README instructions or this mod will not work!");
@@ -128,9 +127,9 @@ public class DiscordLink implements ModInitializer {
 			}
 		}
 
-		Yaml yaml = new Yaml();
 		try (InputStream inputStream = Files.newInputStream(configFile)) {
-			return yaml.loadAs(inputStream, Config.class);
+			TomlMapper mapper = new TomlMapper();
+			return mapper.readValue(inputStream, Config.class);
 		} catch (Exception e) {
 			logError("Error loading config file: " + e, true);
 			return null;
