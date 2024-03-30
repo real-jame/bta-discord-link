@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "discordlink",
-  "version": "0.1",
+  "version": "0.2.0",
 
   "name": "BTA Discord Link",
   "description": "This mod manages a Discord bot to provide a Discord server with stats for your BTA server (and more features todo)",

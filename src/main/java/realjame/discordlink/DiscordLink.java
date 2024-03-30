@@ -1,13 +1,15 @@
 package realjame.discordlink;
 
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.entity.player.EntityPlayerMP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -30,11 +32,12 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
 import static realjame.discordlink.Config.getDefaultConfig;
+import static realjame.discordlink.Log.logError;
+import static realjame.discordlink.Log.logInfo;
 
 public class DiscordLink implements ModInitializer {
-	public static final String MOD_ID = "serverstatus";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	private final long startTime = Instant.now().getEpochSecond();
+	public static TextChannel bridgeChannel;
 
 	@Override
 	public void onInitialize() {
@@ -57,7 +60,7 @@ public class DiscordLink implements ModInitializer {
 
 		JDA jda;
 		try {
-			jda = JDABuilder.createDefault(config.token).setActivity(Activity.playing(config.playingStatus != null ? config.playingStatus : "A Minecraft: Better Than Adventure server!")).setCallbackPool(Executors.newCachedThreadPool(), true).build();
+			jda = JDABuilder.createDefault(config.token).enableIntents(GatewayIntent.MESSAGE_CONTENT).setActivity(Activity.playing(config.playingStatus != null ? config.playingStatus : "A Minecraft: Better Than Adventure server!")).setCallbackPool(Executors.newCachedThreadPool(), true).build();
 		} catch (Exception e) {
 			logError("Failed to initialize Discord bot: " + e.getMessage());
 			return;
@@ -75,6 +78,12 @@ public class DiscordLink implements ModInitializer {
 			return;
 		}
 		logInfo("Got guild " + guild.getName());
+		bridgeChannel = guild.getTextChannelById(config.channelId);
+		if (bridgeChannel == null) {
+			logError("Please specify a valid channel ID (at channelId) in discordlink.toml.");
+			return;
+		}
+		logInfo("Got channel " + bridgeChannel.getName());
 		Category category = guild.getCategoryById(config.categoryId);
 		if (category == null) {
 			logError("Please specify a valid category ID (at categoryId) in discordlink.toml.");
@@ -86,7 +95,9 @@ public class DiscordLink implements ModInitializer {
 		List<GuildChannel> channels = category.getChannels();
 		for (GuildChannel channel : channels) {
 			try {
-				channel.delete().queue();
+				if (channel != bridgeChannel) {
+					channel.delete().queue();
+				}
 			} catch (PermissionException e) {
 				logError("Cannot delete channel: " + e.getMessage());
 				return;
@@ -109,6 +120,15 @@ public class DiscordLink implements ModInitializer {
 		scheduler.scheduleAtFixedRate(() -> updateWorldSize(worldSize, worldDir), 0, 5, TimeUnit.MINUTES);
 
 		logInfo("Discord bot is now active and listening!");
+
+		EmbedBuilder eb = new EmbedBuilder();
+		eb.setTitle("Server is online!", null);
+		eb.setColor(Color.green);
+		eb.setDescription("hi");
+		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
+
+		DiscordRelayer DiscordRelayer = new DiscordRelayer();
+		jda.addEventListener(DiscordRelayer);
 	}
 
 	private Config loadConfig() {
@@ -134,16 +154,6 @@ public class DiscordLink implements ModInitializer {
 			logError("Error loading config file: " + e, true);
 			return null;
 		}
-	}
-
-	private static void logError(String errorMessage, boolean... noCrashWarning) {
-		LOGGER.error(errorMessage);
-		System.out.println(errorMessage + (noCrashWarning.length == 0 ? "\nThe mod will crash now :'(" : ""));
-	}
-
-	private static void logInfo(String infoMessage) {
-		LOGGER.info(infoMessage);
-		System.out.println(infoMessage);
 	}
 
 	private void updateUptime(VoiceChannel channel) {
@@ -191,5 +201,24 @@ public class DiscordLink implements ModInitializer {
 		} catch (Exception e) {
 			logError("Error updating world size: " + e, true);
 		}
+	}
+
+	//	TODO: handle nicknames
+	public static void sendJoinMessage(EntityPlayerMP player) {
+		EmbedBuilder eb = new EmbedBuilder();
+		eb.setTitle(player.username + " has joined the server", null);
+//		eb.setColor(Color.green);
+		eb.setDescription(player.username);
+		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
+	}
+
+	// TODO: handle nicknames and emotes
+	public static void relayChatMessage(EntityPlayerMP player, String chatMessage, byte chatColor) {
+//		EmbedBuilder eb = new EmbedBuilder();
+//		eb.setTitle("Chat message from " + player.username, null);
+//		eb.setColor(Color.white);
+//		eb.setDescription(chatMessage);
+//		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
+		bridgeChannel.sendMessage(chatMessage).complete();
 	}
 }

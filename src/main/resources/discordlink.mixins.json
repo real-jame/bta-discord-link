@@ -4,6 +4,8 @@
     "package": "realjame.discordlink.mixin",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
+      "NetLoginHandlerMixin",
+      "NetServerHandlerMixin"
     ],
     "client": [
     ],

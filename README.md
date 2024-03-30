@@ -25,6 +25,9 @@ This is a really basic version so that's about it. And the code could use some w
 
 **NOTE:** The bot will **DELETE** every channel in the category every time it starts up!
 
+[//]: # (TODO: chat bridge instructions)
+[//]: # (TODO: for the chat bridge tell people they need to turn on message intent role)
+
 **Additional config options:** 
 - If you use a different name for your world folder, make sure to change the `worldName` option to whatever yours is named. 
 - If you want to change the bot's playing status, change the `playingStatus` option.

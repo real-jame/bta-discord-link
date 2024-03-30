@@ -4,6 +4,7 @@ public final class Config {
 	public String token;
 	public long guildId;
 	public long categoryId;
+	public long channelId;
 	public String worldName;
 	public String playingStatus;
 
@@ -13,6 +14,7 @@ public final class Config {
 			+ "token = \"your_discord_bot_token_here\"\n"
 			+ "guildId = \"123456789012345678\"\n"
 			+ "categoryId = \"123456789012345678\"\n"
+			+ "channelId = \"123456789012345678\"\n"
 			+ "worldName = \"world\"\n\n"
 			+ "# Display options\n"
 			+ "playingStatus = \"testing\"\n";
