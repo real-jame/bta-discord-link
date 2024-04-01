@@ -1,4 +1,4 @@
-# Discord Server Status
+# BTA Discord Link (for servers)
 
 Display live statistics for your BTA server on Discord!
 

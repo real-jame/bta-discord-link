@@ -1,4 +1,4 @@
-package realjame.discordlink;
+package realjame.discordlink.chatbridge;
 
 import java.util.HashMap;
 import java.util.Map;

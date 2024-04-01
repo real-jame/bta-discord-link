@@ -1,4 +1,4 @@
-package realjame.discordlink;
+package realjame.discordlink.chatbridge;
 
 public class ChatColors {
 }

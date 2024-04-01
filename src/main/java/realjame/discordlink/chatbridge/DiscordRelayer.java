@@ -1,15 +1,14 @@
-package realjame.discordlink;
+package realjame.discordlink.chatbridge;
 
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.core.net.command.TextFormatting;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.entity.player.EntityPlayerMP;
 import org.jetbrains.annotations.NotNull;
 
 import static realjame.discordlink.DiscordLink.bridgeChannel;
 import static realjame.discordlink.Log.logError;
+import static realjame.discordlink.Log.logInfo;
 
 public class DiscordRelayer extends ListenerAdapter {
 	@Override
@@ -21,19 +20,16 @@ public class DiscordRelayer extends ListenerAdapter {
 		messageContent = ChatEmotes.toEmote(messageContent);
 //		System.out.println("User sent message: " + messageContent);
 		try {
-			MinecraftServer.getInstance().configManager.sendEncryptedChatToAllPlayers("[" + getDisplayName(event.getMember()) + TextFormatting.RESET + "] " + TextFormatting.RESET + TextFormatting.LIGHT_GRAY + messageContent);
+			String name = event.getMember().getNickname();
+			if (name == null) {
+				name = event.getMember().getUser().getName();
+			} else {
+				name = TextFormatting.ITALIC + name;
+			}
+			logInfo("Relaying Discord message from " + name + ": " + messageContent);
+			MinecraftServer.getInstance().configManager.sendEncryptedChatToAllPlayers("[" + name + TextFormatting.RESET + "] " + TextFormatting.RESET + TextFormatting.LIGHT_GRAY + messageContent);
 		} catch (Exception e) {
 			logError("Error relaying Discord message to Minecraft: " + e.getMessage());
 		}
-	}
-
-	private static String getDisplayName(Member member) {
-		String name = member.getNickname();
-		if (name == null) {
-			name = member.getUser().getName();
-		} else {
-			name = TextFormatting.ITALIC + name;
-		}
-		return name;
 	}
 }

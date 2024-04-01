@@ -1,7 +1,12 @@
 package realjame.discordlink;
 
+import club.minnced.discord.webhook.external.JDAWebhookClient;
+import club.minnced.discord.webhook.send.WebhookMessage;
+import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.fabricmc.loader.api.FabricLoader;
@@ -18,6 +23,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +36,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import realjame.discordlink.chatbridge.DiscordRelayer;
 
 import static realjame.discordlink.Config.getDefaultConfig;
 import static realjame.discordlink.Log.logError;
@@ -38,12 +45,15 @@ import static realjame.discordlink.Log.logInfo;
 public class DiscordLink implements ModInitializer {
 	private final long startTime = Instant.now().getEpochSecond();
 	public static TextChannel bridgeChannel;
+	private static Config config;
+	private static JDAWebhookClient webhookClient;
+	// TODO: split discord bot client into a class?
 
 	@Override
 	public void onInitialize() {
 		logInfo("DiscordLink started.");
 
-		Config config = loadConfig();
+		config = loadConfig();
 		if (config == null) {
 			logError("A valid discordlink.toml file was not found in the server's config directory.");
 			return;
@@ -109,6 +119,8 @@ public class DiscordLink implements ModInitializer {
 		VoiceChannel playerCount = (VoiceChannel) category.createVoiceChannel("👥 Players online: ?").complete();
 		VoiceChannel worldSize = (VoiceChannel) category.createVoiceChannel("💾 World size: ?").complete();
 
+		// TODO: wait for MinecraftServer configManager to exist before continuing. the mod will have to be initialized on a separate thread.
+
 		// Start listening for stats
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		scheduler.scheduleAtFixedRate(() -> updateUptime(uptime), 0, 5, TimeUnit.MINUTES);
@@ -125,10 +137,24 @@ public class DiscordLink implements ModInitializer {
 		eb.setTitle("Server is online!", null);
 		eb.setColor(Color.green);
 		eb.setDescription("hi");
-		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
+//		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
 
 		DiscordRelayer DiscordRelayer = new DiscordRelayer();
 		jda.addEventListener(DiscordRelayer);
+
+		// Thanks <3 https://github.com/Melon-Modding/bta-discord-integration/blob/2e2172b5b4fe164bb8d148fd7eff68e5a0f54a6f/src/main/java/de/olivermakesco/bta_discord_integration/server/DiscordClient.java#L70
+		if (config.discordChatDisplay == Config.DiscordChatDisplayType.WEBHOOK) {
+			Optional<Webhook> optionalWebhook = bridgeChannel.retrieveWebhooks().complete().stream().filter((it) -> {
+				User owner = it.getOwnerAsUser();
+				if (owner == null) {
+					return false;
+				}
+				return owner.getId().equals(jda.getSelfUser().getId());
+			}).findFirst();
+
+			webhookClient = JDAWebhookClient.from(optionalWebhook.orElseGet(() -> bridgeChannel.createWebhook("BTA D Link Chat Bridge").complete()));
+		}
+		System.out.println("Got webhook!");
 	}
 
 	private Config loadConfig() {
@@ -212,13 +238,33 @@ public class DiscordLink implements ModInitializer {
 		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
 	}
 
-	// TODO: handle nicknames and emotes
-	public static void relayChatMessage(EntityPlayerMP player, String chatMessage, byte chatColor) {
+	public static void relayBTAChatMessage(EntityPlayerMP player, String chatMessage, byte chatColor) {
 //		EmbedBuilder eb = new EmbedBuilder();
 //		eb.setTitle("Chat message from " + player.username, null);
 //		eb.setColor(Color.white);
 //		eb.setDescription(chatMessage);
 //		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
-		bridgeChannel.sendMessage(chatMessage).complete();
+		String name = player.nickname;
+		boolean isNickname = true;
+		if (name.isEmpty()) {
+			name = player.username;
+			isNickname = false;
+		}
+		logInfo("Relaying BTA message from " + name + ": " + chatMessage);
+		if (webhookClient != null && config.discordChatDisplay == Config.DiscordChatDisplayType.WEBHOOK) {
+			if (isNickname) {
+				name = name + "*";
+			}
+			String avatarUrl = "https://mc-heads.net/avatar/" + player.username;
+			WebhookMessage message = new WebhookMessageBuilder().setUsername(name).setAvatarUrl(avatarUrl).setContent(chatMessage).build();
+			webhookClient.send(message);
+		} else {
+			String message;
+			if (isNickname) {
+				name = "*" + name + "*";
+			}
+			message = "<" + name + "> " + chatMessage;
+			bridgeChannel.sendMessage(message).complete();
+		}
 	}
 }
