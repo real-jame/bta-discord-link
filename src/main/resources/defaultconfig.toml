@@ -1,0 +1,29 @@
+# Feature toggles
+disableChatBridge = false
+statsDisplayed = ["UPTIME", "PLAYERS_ONLINE", "WORLD_SIZE"]
+
+# Bot setup
+token = "your_discord_bot_token_here"
+
+guildId = "123456789012345678"
+
+categoryId = "123456789012345678"
+channelId = "123456789012345678"
+
+worldName = "world"
+
+# Display options
+playingStatus = "testing"
+
+# Customize how BTA chats are displayed on Discord: webhook or compact.
+# WEBHOOK: Creates a fake user out of the BTA username using webhooks, displaying the player's head as the PFP.
+# COMPACT: Bot sends the messages itself, making it appear like a BTA chat message using angle brackets to display the username.
+discordChatDisplay = "WEBHOOK"
+
+# Customize the profile picture for webhooks.
+# HEAD_2D: The front side of the player's head.
+# HEAD_3D: An isometric view of the player's head.
+# BODY_2D: The front side of the player's full body.
+# BODY_3D: An isometric view of the player's full body.
+# COMBO: BODY_2D overlayed in the corner of HEAD_2D.
+webhookPFPStyle = "HEAD_3D"

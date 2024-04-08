@@ -4,6 +4,10 @@ package realjame.discordlink;
 // Webhook: Creates a fake user out of the BTA username using webhooks, displaying the player's head as the PFP.
 // Compact: Bot sends the messages itself, making it appear like a BTA chat message using angle brackets to display the username.
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
+
 public final class Config {
 	public enum ServerStat {
 		UPTIME,
@@ -14,6 +18,13 @@ public final class Config {
 	public enum DiscordChatDisplayType {
 		WEBHOOK,
 		COMPACT
+	}
+	public enum WebhookPFPStyle {
+		HEAD_2D,
+		HEAD_3D,
+		BODY_2D,
+		BODY_3D,
+		COMBO
 	}
 
 	public boolean disableChatBridge;
@@ -26,24 +37,19 @@ public final class Config {
 	public String worldName;
 	public String playingStatus;
 	public DiscordChatDisplayType discordChatDisplay;
+	public WebhookPFPStyle webhookPFPStyle;
 
-	// TODO: move this to a file in the project if it keeps getting longer?
-	// TODO: description comment for statsDisplayed options
-	public static String getDefaultConfig() {
-		return "#Feature toggles\n" +
-			"disableChatBridge = false\n" +
-			"statsDisplayed = [\"UPTIME\", \"PLAYERS_ONLINE\", \"WORLD_SIZE\"]\n\n" +
-			"# Bot setup\n" +
-			"token = \"your_discord_bot_token_here\"\n" +
-			"guildId = \"123456789012345678\"\n" +
-			"categoryId = \"123456789012345678\"\n" +
-			"channelId = \"123456789012345678\"\n" +
-			"worldName = \"world\"\n\n" +
-			"# Display options\n" +
-			"playingStatus = \"testing\"\n" +
-			"# Customize how BTA chats are displayed on Discord: webhook or compact.\n" +
-			"# WEBHOOK: Creates a fake user out of the BTA username using webhooks, displaying the player's head as the PFP.\n" +
-			"# COMPACT: Bot sends the messages itself, making it appear like a BTA chat message using angle brackets to display the username.\n" +
-			"discordChatDisplay = \"WEBHOOK\"";
+	public static String getDefaultConfig() throws IOException {
+		try (InputStream inputStream =  Config.class.getResourceAsStream("/defaultconfig.toml");
+			 Scanner scanner = new Scanner(inputStream)) {
+			StringBuilder content = new StringBuilder();
+			while (scanner.hasNextLine()) {
+				content.append(scanner.nextLine()).append("\n");
+			}
+			return content.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null; // Handle file reading error
+		}
 	}
 }

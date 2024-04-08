@@ -239,11 +239,6 @@ public class DiscordLink implements ModInitializer {
 	}
 
 	public static void relayBTAChatMessage(EntityPlayerMP player, String chatMessage, byte chatColor) {
-//		EmbedBuilder eb = new EmbedBuilder();
-//		eb.setTitle("Chat message from " + player.username, null);
-//		eb.setColor(Color.white);
-//		eb.setDescription(chatMessage);
-//		bridgeChannel.sendMessageEmbeds(eb.build()).complete();
 		String name = player.nickname;
 		boolean isNickname = true;
 		if (name.isEmpty()) {
@@ -255,7 +250,20 @@ public class DiscordLink implements ModInitializer {
 			if (isNickname) {
 				name = name + "*";
 			}
-			String avatarUrl = "https://mc-heads.net/avatar/" + player.username;
+			String avatarStyle = "head";
+			switch (config.webhookPFPStyle) {
+				case HEAD_2D: avatarStyle = "avatar";
+				break;
+				case HEAD_3D: avatarStyle = "head";
+				break;
+				case BODY_2D: avatarStyle = "player";
+				break;
+				case BODY_3D: avatarStyle = "body";
+				break;
+				case COMBO: avatarStyle = "combo";
+				break;
+			}
+			String avatarUrl = "https://mc-heads.net/" + avatarStyle + "/" + player.username;
 			WebhookMessage message = new WebhookMessageBuilder().setUsername(name).setAvatarUrl(avatarUrl).setContent(chatMessage).build();
 			webhookClient.send(message);
 		} else {
